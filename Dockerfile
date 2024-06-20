@@ -46,7 +46,7 @@ RUN GO111MODULE=on CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
 		-trimpath \
 		-ldflags="-w -s -X k8s.io/component-base/version.gitVersion=$VERSION" \
     -o /build/_output/gcp-cloud-controller-manager \
-		./cmd/gcp-controller-manager/
+		./cmd/cloud-controller-manager/
 
 ################################################################################
 ##                               MAIN STAGE                                   ##
