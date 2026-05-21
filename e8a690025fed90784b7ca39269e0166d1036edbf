@@ -1,0 +1,1 @@
+{"overlay":"8edec62abaea389c0b8e053d9c4b949d5a19f3d212f45bfadc0c9a526cfa90c9","patch":"f562bac7e6b5ce41d9f7111b23a9ebf3424c7aa484acef1f19088c2c13d075bb","patchFiles":["0001-fix-go-work-missing-k8s-module-replacements.patch"]}
