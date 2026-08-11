@@ -48,8 +48,6 @@ const (
 	StorageScopePrefix       = "https://www.googleapis.com/auth/devstorage"
 	cloudPlatformScopePrefix = "https://www.googleapis.com/auth/cloud-platform"
 	defaultServiceAccount    = "default/"
-	// EnableWIImagePullAnnotation is the KSA annotation key to opt-in to Workload Identity image pulling
-	EnableWIImagePullAnnotation = "iam.gke.io/enable-wi-image-pull"
 	// googleSTSEndpoint is the GCP STS token exchange endpoint
 	googleSTSEndpoint = "https://sts.googleapis.com/v1/token"
 )
@@ -94,9 +92,8 @@ type ContainerRegistryProvider struct {
 	UseRegistryFromImage bool
 
 	// Workload Identity context passed via constructor
-	KSAToken                  string
-	ServiceAccountAnnotations map[string]string
-	IdentityProvider          string
+	KSAToken         string
+	IdentityProvider string
 }
 
 // Returns true if it finds a local GCE VM.
@@ -264,7 +261,7 @@ type stsTokenExchangeResponse struct {
 
 // Provide implements DockerConfigProvider
 func (g *ContainerRegistryProvider) Provide(image string) credentialconfig.DockerConfig {
-	if g.IdentityProvider == "" || g.ServiceAccountAnnotations[EnableWIImagePullAnnotation] != "true" {
+	if g.IdentityProvider == "" {
 		klog.V(4).Infof("Standard flow active: Workload Identity is disabled, using Node Service Account for image: %s", image)
 		return g.provideNodeSACredentials(image)
 	}
