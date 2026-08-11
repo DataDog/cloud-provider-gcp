@@ -20,28 +20,24 @@ func (m *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 func TestProvide_WorkloadIdentity(t *testing.T) {
 	validToken := "dummyHeader.eyJpc3MiOiAiaHR0cHM6Ly9jb250YWluZXIuZ29vZ2xlYXBpcy5jb20vdjEvcHJvamVjdHMvbXktcHJvamVjdC9sb2NhdGlvbnMvdXMtY2VudHJhbDEvY2x1c3RlcnMvbXktY2x1c3RlciJ9.dummySignature"
 	tests := []struct {
-		name                      string
-		identityProvider          string
-		serviceAccountToken       string
-		serviceAccountAnnotations map[string]string
-		metadataResponses         map[string]string
-		stsResponse               string
-		wantAudience              string
-		expectedToken             string
+		name                string
+		identityProvider    string
+		serviceAccountToken string
+		metadataResponses   map[string]string
+		stsResponse         string
+		wantAudience        string
+		expectedToken       string
 	}{
 		{
 			name:                "Direct Access Mode (Success)",
 			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: validToken,
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
-			stsResponse:   `{"access_token": "federated-token-xyz", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
-			expectedToken: "federated-token-xyz",
+			stsResponse:         `{"access_token": "federated-token-xyz", "expires_in": 3600, "token_type": "Bearer"}`,
+			wantAudience:        "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
+			expectedToken:       "federated-token-xyz",
 		},
 		{
-			name:                "Fallback to Node SA (Unannotated SA, bypass STS)",
+			name:                "Fallback to Node SA (No Identity Provider, bypass STS)",
 			serviceAccountToken: validToken,
 			metadataResponses: map[string]string{
 				"project/project-id":                      "my-project",
@@ -53,12 +49,9 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			expectedToken: "node-sa-token",
 		},
 		{
-			name:                "Fail Fast - Annotated SA for WIF, STS Fails",
+			name:                "Fail Fast - Identity Provider Configured, STS Fails",
 			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: validToken,
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
 			metadataResponses: map[string]string{
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
 			},
@@ -67,12 +60,9 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			expectedToken: "",
 		},
 		{
-			name:                "Fail Fast - Annotated SA for WIF, Token is Empty",
+			name:                "Fail Fast - Identity Provider Configured, Token is Empty",
 			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: "",
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
 			metadataResponses: map[string]string{
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
 			},
@@ -80,31 +70,12 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			expectedToken: "",
 		},
 		{
-			name:                "Fallback to Node SA - Annotated but Feature Disabled",
-			identityProvider:    "",
-			serviceAccountToken: validToken,
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
-			metadataResponses: map[string]string{
-				"project/project-id":                      "my-project",
-				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
-				"instance/service-accounts/default/email": "node-sa@project.gserviceaccount.com",
-				"instance/service-accounts/":              "default/\n",
-			},
-			stsResponse:   `{"access_token": "should-not-be-called", "expires_in": 3600, "token_type": "Bearer"}`,
-			expectedToken: "node-sa-token",
-		},
-		{
 			name:                "Direct Access Mode - Configured Identity Provider (Success)",
 			identityProvider:    "https://custom-provider.com",
 			serviceAccountToken: validToken,
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
-			stsResponse:   `{"access_token": "federated-token-custom", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "https://custom-provider.com",
-			expectedToken: "federated-token-custom",
+			stsResponse:         `{"access_token": "federated-token-custom", "expires_in": 3600, "token_type": "Bearer"}`,
+			wantAudience:        "https://custom-provider.com",
+			expectedToken:       "federated-token-custom",
 		},
 	}
 
@@ -176,7 +147,6 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 				UseRegistryFromImage: true,
 			}
 			provider.KSAToken = tc.serviceAccountToken
-			provider.ServiceAccountAnnotations = tc.serviceAccountAnnotations
 			provider.IdentityProvider = tc.identityProvider
 
 			cfg := provider.Provide("us-central1-docker.pkg.dev/my-project/my-repo/my-image:latest")
