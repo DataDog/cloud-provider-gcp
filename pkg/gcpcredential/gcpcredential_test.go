@@ -39,7 +39,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			},
 			projectID:     "my-project",
 			stsResponse:   `{"access_token": "federated-token-xyz", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "identitynamespace:my-project.svc.id.goog:https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			wantAudience:  "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
 			expectedToken: "federated-token-xyz",
 		},
 		{
@@ -66,7 +66,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
 			},
 			stsResponse:   "error",
-			wantAudience:  "identitynamespace:my-project.svc.id.goog:https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			wantAudience:  "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
 			expectedToken: "",
 		},
 		{
@@ -108,7 +108,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			},
 			projectID:     "my-project",
 			stsResponse:   `{"access_token": "federated-token-custom", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "identitynamespace:my-project.svc.id.goog:https://custom-provider.com",
+			wantAudience:  "https://custom-provider.com",
 			expectedToken: "federated-token-custom",
 		},
 		{
@@ -120,7 +120,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			},
 			projectID:     "pre-configured-project",
 			stsResponse:   `{"access_token": "federated-token-pre", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "identitynamespace:pre-configured-project.svc.id.goog:https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			wantAudience:  "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
 			expectedToken: "federated-token-pre",
 		},
 		{
