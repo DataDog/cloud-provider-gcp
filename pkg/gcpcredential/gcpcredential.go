@@ -357,8 +357,7 @@ func (g *ContainerRegistryProvider) executeWorkloadIdentityExchange(ctx context.
 }
 
 func (g *ContainerRegistryProvider) exchangeKSATokenForFederated(ctx context.Context, projectID string) (string, error) {
-	// Audience format: identitynamespace:<POOL_ID>:<PROVIDER_URL>
-	audience := fmt.Sprintf("identitynamespace:%s.svc.id.goog:%s", projectID, g.IdentityProvider)
+	audience := g.IdentityProvider
 	klog.V(4).Infof("auth-provider-gcp: Constructed STS Full Audience: %s", audience)
 
 	payload := stsTokenExchangeRequest{
