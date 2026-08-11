@@ -38,12 +38,9 @@ func TestValidateAuthFlow(t *testing.T) {
 		{Name: "bad auth flow option", Options: CredentialOptions{AuthFlow: "bad-flow"}, Error: &AuthFlowFlagError{flagValue: "bad-flow"}},
 		{Name: "empty auth flow option", Options: CredentialOptions{AuthFlow: ""}, Error: &AuthFlowFlagError{flagValue: ""}},
 		{Name: "case-sensitive auth flow", Options: CredentialOptions{AuthFlow: "Gcrauthflow"}, Error: &AuthFlowFlagError{flagValue: "Gcrauthflow"}},
-		{Name: "identity-provider and project-id with gcr flow", Options: CredentialOptions{AuthFlow: gcrAuthFlow, IdentityProvider: "https://container.googleapis.com/...", ProjectID: "my-project"}},
-		{Name: "identity-provider and project-id with dockercfg flow", Options: CredentialOptions{AuthFlow: dockerConfigAuthFlow, IdentityProvider: "https://container.googleapis.com/...", ProjectID: "my-project"}},
-		{Name: "identity-provider and project-id with dockercfg-url flow", Options: CredentialOptions{AuthFlow: dockerConfigURLAuthFlow, IdentityProvider: "https://container.googleapis.com/...", ProjectID: "my-project"}},
-		{Name: "identity-provider without project-id with gcr flow", Options: CredentialOptions{AuthFlow: gcrAuthFlow, IdentityProvider: "https://container.googleapis.com/..."}, Error: ErrProjectIDRequired},
-		{Name: "identity-provider without project-id with dockercfg flow", Options: CredentialOptions{AuthFlow: dockerConfigAuthFlow, IdentityProvider: "https://container.googleapis.com/..."}, Error: ErrProjectIDRequired},
-		{Name: "identity-provider without project-id with dockercfg-url flow", Options: CredentialOptions{AuthFlow: dockerConfigURLAuthFlow, IdentityProvider: "https://container.googleapis.com/..."}, Error: ErrProjectIDRequired},
+		{Name: "identity-provider with gcr flow", Options: CredentialOptions{AuthFlow: gcrAuthFlow, IdentityProvider: "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider"}},
+		{Name: "identity-provider with dockercfg flow", Options: CredentialOptions{AuthFlow: dockerConfigAuthFlow, IdentityProvider: "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider"}},
+		{Name: "identity-provider with dockercfg-url flow", Options: CredentialOptions{AuthFlow: dockerConfigURLAuthFlow, IdentityProvider: "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider"}},
 	}
 	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
