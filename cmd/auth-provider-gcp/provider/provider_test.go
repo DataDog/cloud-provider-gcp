@@ -160,7 +160,7 @@ func TestContainerRegistry_WorkloadIdentity(t *testing.T) {
 				return
 			}
 
-			expectedAudience := "identitynamespace:my-project.svc.id.goog:https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster"
+			expectedAudience := "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster"
 			if reqPayload.Audience != expectedAudience {
 				http.Error(w, fmt.Sprintf("unexpected audience %q", reqPayload.Audience), http.StatusBadRequest)
 				return
