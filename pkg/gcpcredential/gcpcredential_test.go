@@ -28,18 +28,16 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 		stsResponse               string
 		wantAudience              string
 		expectedToken             string
-		projectID                 string
 	}{
 		{
 			name:                "Direct Access Mode (Success)",
-			identityProvider:    "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: validToken,
 			serviceAccountAnnotations: map[string]string{
 				"iam.gke.io/enable-wi-image-pull": "true",
 			},
-			projectID:     "my-project",
 			stsResponse:   `{"access_token": "federated-token-xyz", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			wantAudience:  "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			expectedToken: "federated-token-xyz",
 		},
 		{
@@ -56,27 +54,25 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 		},
 		{
 			name:                "Fail Fast - Annotated SA for WIF, STS Fails",
-			identityProvider:    "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: validToken,
 			serviceAccountAnnotations: map[string]string{
 				"iam.gke.io/enable-wi-image-pull": "true",
 			},
-			projectID: "my-project",
 			metadataResponses: map[string]string{
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
 			},
 			stsResponse:   "error",
-			wantAudience:  "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			wantAudience:  "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			expectedToken: "",
 		},
 		{
 			name:                "Fail Fast - Annotated SA for WIF, Token is Empty",
-			identityProvider:    "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
+			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: "",
 			serviceAccountAnnotations: map[string]string{
 				"iam.gke.io/enable-wi-image-pull": "true",
 			},
-			projectID: "my-project",
 			metadataResponses: map[string]string{
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
 			},
@@ -106,32 +102,9 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			serviceAccountAnnotations: map[string]string{
 				"iam.gke.io/enable-wi-image-pull": "true",
 			},
-			projectID:     "my-project",
 			stsResponse:   `{"access_token": "federated-token-custom", "expires_in": 3600, "token_type": "Bearer"}`,
 			wantAudience:  "https://custom-provider.com",
 			expectedToken: "federated-token-custom",
-		},
-		{
-			name:                "Direct Access Mode - With Pre-configured Project ID (Success)",
-			identityProvider:    "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
-			serviceAccountToken: validToken,
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
-			projectID:     "pre-configured-project",
-			stsResponse:   `{"access_token": "federated-token-pre", "expires_in": 3600, "token_type": "Bearer"}`,
-			wantAudience:  "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
-			expectedToken: "federated-token-pre",
-		},
-		{
-			name:                "Fail Fast - Project ID is Empty",
-			identityProvider:    "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster",
-			serviceAccountToken: validToken,
-			serviceAccountAnnotations: map[string]string{
-				"iam.gke.io/enable-wi-image-pull": "true",
-			},
-			projectID:     "",
-			expectedToken: "",
 		},
 	}
 
@@ -205,7 +178,6 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 			provider.KSAToken = tc.serviceAccountToken
 			provider.ServiceAccountAnnotations = tc.serviceAccountAnnotations
 			provider.IdentityProvider = tc.identityProvider
-			provider.ProjectID = tc.projectID
 
 			cfg := provider.Provide("us-central1-docker.pkg.dev/my-project/my-repo/my-image:latest")
 
