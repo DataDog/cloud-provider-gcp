@@ -84,7 +84,7 @@ func TestContainerRegistry(t *testing.T) {
 			return url.Parse(server.URL + req.URL.Path)
 		},
 	})
-	provider := MakeRegistryProvider(transport, "", nil, "")
+	provider := MakeRegistryProvider(transport, "", "")
 	response, err := GetResponse(credentialproviderapi.CredentialProviderRequest{Image: dummyImage}, provider)
 	if err != nil {
 		t.Fatalf("Unexpected error while getting response: %s", err.Error())
@@ -199,9 +199,7 @@ func TestContainerRegistry_WorkloadIdentity(t *testing.T) {
 		},
 	})
 
-	provider := MakeRegistryProvider(transport, ksaToken, map[string]string{
-		"iam.gke.io/enable-wi-image-pull": "true",
-	}, "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider")
+	provider := MakeRegistryProvider(transport, ksaToken, "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider")
 
 	req := credentialproviderapi.CredentialProviderRequest{
 		Image: dummyImage,
@@ -339,19 +337,11 @@ func TestConfigURLProvider(t *testing.T) {
 func TestMakeRegistryProvider(t *testing.T) {
 	transport := &http.Transport{}
 	token := "test-token-123"
-	annotations := map[string]string{
-		"test-annotation": "test-value",
-	}
 
-	provider := MakeRegistryProvider(transport, token, annotations, "test-provider")
+	provider := MakeRegistryProvider(transport, token, "test-provider")
 
 	if provider.KSAToken != token {
 		t.Errorf("expected KSAToken to be %q, got %q", token, provider.KSAToken)
-	}
-
-	val, ok := provider.ServiceAccountAnnotations["test-annotation"]
-	if !ok || val != "test-value" {
-		t.Errorf("expected ServiceAccountAnnotations to contain test-annotation=test-value, got %v", provider.ServiceAccountAnnotations)
 	}
 
 	if provider.IdentityProvider != "test-provider" {
