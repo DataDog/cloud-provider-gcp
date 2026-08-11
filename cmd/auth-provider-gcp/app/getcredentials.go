@@ -97,7 +97,7 @@ func providerFromFlow(flow string, req credentialproviderapi.CredentialProviderR
 	transport := utilnet.SetTransportDefaults(&http.Transport{})
 	switch flow {
 	case gcrAuthFlow:
-		return provider.MakeRegistryProvider(transport, req.ServiceAccountToken, req.ServiceAccountAnnotations, options.IdentityProvider), nil
+		return provider.MakeRegistryProvider(transport, req.ServiceAccountToken, options.IdentityProvider), nil
 	case dockerConfigAuthFlow:
 		return provider.MakeDockerConfigProvider(transport), nil
 	case dockerConfigURLAuthFlow:
