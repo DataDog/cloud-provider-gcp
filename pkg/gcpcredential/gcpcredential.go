@@ -97,7 +97,6 @@ type ContainerRegistryProvider struct {
 	KSAToken                  string
 	ServiceAccountAnnotations map[string]string
 	IdentityProvider          string
-	ProjectID                 string
 }
 
 // Returns true if it finds a local GCE VM.
@@ -341,13 +340,9 @@ func (g *ContainerRegistryProvider) populateConfig(cfg credentialconfig.DockerCo
 
 // executeWorkloadIdentityExchange handles the direct workload identity token exchange
 func (g *ContainerRegistryProvider) executeWorkloadIdentityExchange(ctx context.Context, image string) (string, error) {
-	if g.ProjectID == "" {
-		return "", fmt.Errorf("project-id must be configured for Workload Identity exchange")
-	}
-
 	// Trade KSA token for a Google Federated Token via STS
-	klog.V(4).Infof("auth-provider-gcp: Executing STS exchange for Project ID: %s", g.ProjectID)
-	federatedToken, err := g.exchangeKSATokenForFederated(ctx, g.ProjectID)
+	klog.V(4).Infof("auth-provider-gcp: Executing STS exchange for Identity Provider: %s", g.IdentityProvider)
+	federatedToken, err := g.exchangeKSATokenForFederated(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed KSA->Federated STS exchange: %w", err)
 	}
@@ -356,7 +351,7 @@ func (g *ContainerRegistryProvider) executeWorkloadIdentityExchange(ctx context.
 	return federatedToken, nil
 }
 
-func (g *ContainerRegistryProvider) exchangeKSATokenForFederated(ctx context.Context, projectID string) (string, error) {
+func (g *ContainerRegistryProvider) exchangeKSATokenForFederated(ctx context.Context) (string, error) {
 	audience := g.IdentityProvider
 	klog.V(4).Infof("auth-provider-gcp: Constructed STS Full Audience: %s", audience)
 
