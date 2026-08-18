@@ -192,8 +192,12 @@ func TestContainerRegistry_WorkloadIdentity(t *testing.T) {
 			if addr == "sts.googleapis.com:443" {
 				return net.Dial(network, net.JoinHostPort("127.0.0.1", stsPort))
 			}
-			return net.Dial(network, addr)
+			return nil, fmt.Errorf("unexpected dial to %s", addr)
 		},
+		// Proxy must be non-nil, otherwise utilnet.SetTransportDefaults populates it with
+		// http.ProxyFromEnvironment, which honors the HTTP_PROXY/HTTPS_PROXY environment
+		// variables and breaks the DialContext interception logic
+		Proxy: func(_ *http.Request) (*url.URL, error) { return nil, nil },
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true, // trust the mock TLS certificate
 		},
