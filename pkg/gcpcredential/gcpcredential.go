@@ -92,8 +92,8 @@ type ContainerRegistryProvider struct {
 	UseRegistryFromImage bool
 
 	// Workload Identity context passed via constructor
-	KSAToken         string
-	IdentityProvider string
+	KSAToken    string
+	STSAudience string
 }
 
 // Returns true if it finds a local GCE VM.
@@ -261,7 +261,7 @@ type stsTokenExchangeResponse struct {
 
 // Provide implements DockerConfigProvider
 func (g *ContainerRegistryProvider) Provide(image string) credentialconfig.DockerConfig {
-	if g.IdentityProvider == "" {
+	if g.STSAudience == "" {
 		klog.V(4).Infof("Standard flow active: Workload Identity is disabled, using Node Service Account for image: %s", image)
 		return g.provideNodeSACredentials(image)
 	}
@@ -338,7 +338,7 @@ func (g *ContainerRegistryProvider) populateConfig(cfg credentialconfig.DockerCo
 // executeWorkloadIdentityExchange handles the direct workload identity token exchange
 func (g *ContainerRegistryProvider) executeWorkloadIdentityExchange(ctx context.Context, image string) (string, error) {
 	// Trade KSA token for a Google Federated Token via STS
-	klog.V(4).Infof("auth-provider-gcp: Executing STS exchange for Identity Provider: %s", g.IdentityProvider)
+	klog.V(4).Infof("auth-provider-gcp: Executing STS exchange for audience: %s", g.STSAudience)
 	federatedToken, err := g.exchangeKSATokenForFederated(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed KSA->Federated STS exchange: %w", err)
@@ -349,11 +349,10 @@ func (g *ContainerRegistryProvider) executeWorkloadIdentityExchange(ctx context.
 }
 
 func (g *ContainerRegistryProvider) exchangeKSATokenForFederated(ctx context.Context) (string, error) {
-	audience := g.IdentityProvider
-	klog.V(4).Infof("auth-provider-gcp: Constructed STS Full Audience: %s", audience)
+	klog.V(4).Infof("auth-provider-gcp: Constructed STS Full Audience: %s", g.STSAudience)
 
 	payload := stsTokenExchangeRequest{
-		Audience:           audience,
+		Audience:           g.STSAudience,
 		GrantType:          "urn:ietf:params:oauth:grant-type:token-exchange",
 		RequestedTokenType: "urn:ietf:params:oauth:token-type:access_token",
 		Scope:              "https://www.googleapis.com/auth/cloud-platform",
