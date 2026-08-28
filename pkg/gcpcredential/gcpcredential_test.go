@@ -21,7 +21,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 	validToken := "dummyHeader.eyJpc3MiOiAiaHR0cHM6Ly9jb250YWluZXIuZ29vZ2xlYXBpcy5jb20vdjEvcHJvamVjdHMvbXktcHJvamVjdC9sb2NhdGlvbnMvdXMtY2VudHJhbDEvY2x1c3RlcnMvbXktY2x1c3RlciJ9.dummySignature"
 	tests := []struct {
 		name                string
-		identityProvider    string
+		stsAudience         string
 		serviceAccountToken string
 		metadataResponses   map[string]string
 		stsResponse         string
@@ -30,7 +30,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 	}{
 		{
 			name:                "Direct Access Mode (Success)",
-			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
+			stsAudience:         "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: validToken,
 			stsResponse:         `{"access_token": "federated-token-xyz", "expires_in": 3600, "token_type": "Bearer"}`,
 			wantAudience:        "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
@@ -50,7 +50,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 		},
 		{
 			name:                "Fail Fast - Identity Provider Configured, STS Fails",
-			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
+			stsAudience:         "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: validToken,
 			metadataResponses: map[string]string{
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
@@ -61,7 +61,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 		},
 		{
 			name:                "Fail Fast - Identity Provider Configured, Token is Empty",
-			identityProvider:    "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
+			stsAudience:         "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider",
 			serviceAccountToken: "",
 			metadataResponses: map[string]string{
 				"instance/service-accounts/default/token": `{"access_token": "node-sa-token", "expires_in": 3600}`,
@@ -71,7 +71,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 		},
 		{
 			name:                "Direct Access Mode - Configured Identity Provider (Success)",
-			identityProvider:    "https://custom-provider.com",
+			stsAudience:         "https://custom-provider.com",
 			serviceAccountToken: validToken,
 			stsResponse:         `{"access_token": "federated-token-custom", "expires_in": 3600, "token_type": "Bearer"}`,
 			wantAudience:        "https://custom-provider.com",
@@ -147,7 +147,7 @@ func TestProvide_WorkloadIdentity(t *testing.T) {
 				UseRegistryFromImage: true,
 			}
 			provider.KSAToken = tc.serviceAccountToken
-			provider.IdentityProvider = tc.identityProvider
+			provider.STSAudience = tc.stsAudience
 
 			cfg := provider.Provide("us-central1-docker.pkg.dev/my-project/my-repo/my-image:latest")
 
