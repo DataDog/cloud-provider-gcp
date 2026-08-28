@@ -41,9 +41,9 @@ const (
 )
 
 // MakeRegistryProvider returns a ContainerRegistryProvider with the given transport.
-func MakeRegistryProvider(transport *http.Transport, token string, identityProvider string) *gcpcredential.ContainerRegistryProvider {
+func MakeRegistryProvider(transport *http.Transport, token string, stsAudience string) *gcpcredential.ContainerRegistryProvider {
 	timeout := metadataHTTPClientTimeout
-	if identityProvider != "" && token != "" {
+	if stsAudience != "" && token != "" {
 		timeout = stsHTTPClientTimeout
 	}
 
@@ -52,7 +52,7 @@ func MakeRegistryProvider(transport *http.Transport, token string, identityProvi
 		MetadataProvider:     gcpcredential.MetadataProvider{Client: httpClient},
 		UseRegistryFromImage: true,
 		KSAToken:             token,
-		IdentityProvider:     identityProvider,
+		STSAudience:          stsAudience,
 	}
 	return provider
 }

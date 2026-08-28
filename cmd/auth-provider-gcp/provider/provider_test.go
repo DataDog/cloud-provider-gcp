@@ -348,7 +348,7 @@ func TestMakeRegistryProvider(t *testing.T) {
 		t.Errorf("expected KSAToken to be %q, got %q", token, provider.KSAToken)
 	}
 
-	if provider.IdentityProvider != "test-provider" {
-		t.Errorf("expected IdentityProvider to be %q, got %q", "test-provider", provider.IdentityProvider)
+	if provider.STSAudience != "test-provider" {
+		t.Errorf("expected STSAudience to be %q, got %q", "test-provider", provider.STSAudience)
 	}
 }
