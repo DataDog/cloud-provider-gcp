@@ -84,7 +84,7 @@ func TestContainerRegistry(t *testing.T) {
 			return url.Parse(server.URL + req.URL.Path)
 		},
 	})
-	provider := MakeRegistryProvider(transport, "", nil, "", "")
+	provider := MakeRegistryProvider(transport, "", "")
 	response, err := GetResponse(credentialproviderapi.CredentialProviderRequest{Image: dummyImage}, provider)
 	if err != nil {
 		t.Fatalf("Unexpected error while getting response: %s", err.Error())
@@ -160,7 +160,7 @@ func TestContainerRegistry_WorkloadIdentity(t *testing.T) {
 				return
 			}
 
-			expectedAudience := "identitynamespace:my-project.svc.id.goog:https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster"
+			expectedAudience := "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider"
 			if reqPayload.Audience != expectedAudience {
 				http.Error(w, fmt.Sprintf("unexpected audience %q", reqPayload.Audience), http.StatusBadRequest)
 				return
@@ -203,9 +203,7 @@ func TestContainerRegistry_WorkloadIdentity(t *testing.T) {
 		},
 	})
 
-	provider := MakeRegistryProvider(transport, ksaToken, map[string]string{
-		"iam.gke.io/enable-wi-image-pull": "true",
-	}, "https://container.googleapis.com/v1/projects/my-project/locations/us-central1/clusters/my-cluster", "my-project")
+	provider := MakeRegistryProvider(transport, ksaToken, "//iam.googleapis.com/projects/my-project-number/locations/global/workloadIdentityPools/my-pool/providers/my-provider")
 
 	req := credentialproviderapi.CredentialProviderRequest{
 		Image: dummyImage,
@@ -343,26 +341,14 @@ func TestConfigURLProvider(t *testing.T) {
 func TestMakeRegistryProvider(t *testing.T) {
 	transport := &http.Transport{}
 	token := "test-token-123"
-	annotations := map[string]string{
-		"test-annotation": "test-value",
-	}
 
-	provider := MakeRegistryProvider(transport, token, annotations, "test-provider", "test-project-123")
+	provider := MakeRegistryProvider(transport, token, "test-provider")
 
 	if provider.KSAToken != token {
 		t.Errorf("expected KSAToken to be %q, got %q", token, provider.KSAToken)
 	}
 
-	val, ok := provider.ServiceAccountAnnotations["test-annotation"]
-	if !ok || val != "test-value" {
-		t.Errorf("expected ServiceAccountAnnotations to contain test-annotation=test-value, got %v", provider.ServiceAccountAnnotations)
-	}
-
-	if provider.IdentityProvider != "test-provider" {
-		t.Errorf("expected IdentityProvider to be %q, got %q", "test-provider", provider.IdentityProvider)
-	}
-
-	if provider.ProjectID != "test-project-123" {
-		t.Errorf("expected ProjectID to be %q, got %q", "test-project-123", provider.ProjectID)
+	if provider.STSAudience != "test-provider" {
+		t.Errorf("expected STSAudience to be %q, got %q", "test-provider", provider.STSAudience)
 	}
 }
