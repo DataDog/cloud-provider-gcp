@@ -1,23 +1,53 @@
-FROM --platform=${BUILDPLATFORM} golang:1.27.0 AS builder
+# Copyright 2018 The Kubernetes Authors.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Based on https://github.com/DataDog/cloud-provider-aws/blob/master/Dockerfile
+#
+################################################################################
+##                               BUILD ARGS                                   ##
+################################################################################
 
-# golang envs
+# Base docker image (like distroless)
+ARG BASE_IMAGE
+# This build arg allows the specification of a custom Golang image.
+ARG BUILDER_IMAGE
+
+FROM ${BUILDER_IMAGE} AS builder
+
+ARG ENABLE_GIT_COMMAND=true
+ARG TARGETOS
 ARG TARGETARCH
-ARG GOOS=linux
-ENV CGO_ENABLED=0
-ENV GOARCH=${TARGETARCH}
-
-WORKDIR /go/src/app
+ARG VERSION
+WORKDIR /build
+RUN mkdir -p /build/_output/
 COPY go.mod go.sum ./
-COPY providers/go.mod providers/go.sum providers/
-COPY vendor/ vendor/
-
 COPY cmd/ cmd/
+COPY metis/ metis/
 COPY pkg/ pkg/
 COPY providers/ providers/
-
-RUN CGO_ENABLED=0 go build -o /go/bin/cloud-controller-manager ./cmd/cloud-controller-manager
-
-FROM registry.k8s.io/build-image/go-runner:v2.4.0-go1.25.8-bookworm.0
-COPY --from=builder --chown=root:root /go/bin/cloud-controller-manager /cloud-controller-manager
-CMD ["/cloud-controller-manager"]
-ENTRYPOINT ["/cloud-controller-manager"]
+COPY test/ test/
+COPY tools/ tools/
+COPY vendor/ vendor/
+RUN sed -i 's|bazel run|# bazel run|g' ./tools/update_vendor.sh
+RUN ./tools/update_vendor.sh
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+	go build \
+	-trimpath \
+	-ldflags="-w -s -X k8s.io/component-base/version.gitVersion=$VERSION" \
+	-o /build/_output/gcp-cloud-controller-manager \
+	./cmd/cloud-controller-manager/
+################################################################################
+##                               MAIN STAGE                                   ##
+################################################################################
+# Copy the manager into the distroless image.
+FROM --platform=${TARGETPLATFORM} ${BASE_IMAGE}
+COPY --from=builder /build/_output/gcp-cloud-controller-manager /bin/gcp-cloud-controller-manager
+ENTRYPOINT [ "/bin/gcp-cloud-controller-manager" ]
