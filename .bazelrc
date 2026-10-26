@@ -20,3 +20,6 @@ build --sandbox_fake_username
 # Enable go race detection.
 test:unit --features=race
 test:unit --flaky_test_attempts=3
+
+# Preserve Bazel 7 behavior for optional file globs under Bazel 8.
+common --incompatible_disallow_empty_glob=false
