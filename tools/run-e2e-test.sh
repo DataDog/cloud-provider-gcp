@@ -140,7 +140,7 @@ mv -f "${REPO_ROOT}/test/e2e/e2e.test" "${RUN_DIR}/e2e.test"
 
 # Install bazel
 #
-BAZEL_VERSION="5.4.0"
+BAZEL_VERSION="8.8.2"
 if [[ -f "${REPO_ROOT}/.bazelversion" ]]; then
     BAZEL_VERSION=$(cat "${REPO_ROOT}/.bazelversion")
 fi
