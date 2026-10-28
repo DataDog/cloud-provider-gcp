@@ -11,6 +11,9 @@ steps:
     entrypoint: tools/push-images
   # build gke-gcloud-auth-plugin binary
   - name: 'gcr.io/cloud-builders/bazel'
+    env:
+      # Bazelisk-based builder: force the trusted Bazel version from .bazelversion.
+      - USE_BAZEL_VERSION=8.8.2
     args:
       - --output_user_root=/workspace/bazel-root
       - --output_base=/workspace/bazel-base-linux-amd64
@@ -23,6 +26,9 @@ steps:
       - gs://k8s-staging-cloud-provider-gcp/gke-gcloud-auth-plugin/linux-amd64/${_GIT_TAG}
   # build auth-provider-gcp binary
   - name: 'gcr.io/cloud-builders/bazel'
+    env:
+      # Bazelisk-based builder: force the trusted Bazel version from .bazelversion.
+      - USE_BAZEL_VERSION=8.8.2
     args:
       - --output_user_root=/workspace/bazel-root
       - --output_base=/workspace/bazel-base-linux-amd64
@@ -35,6 +41,9 @@ steps:
       - gs://k8s-staging-cloud-provider-gcp/auth-provider-gcp/linux-amd64/${_GIT_TAG}
   # build gke-gcloud-auth-plugin binary
   - name: 'gcr.io/cloud-builders/bazel'
+    env:
+      # Bazelisk-based builder: force the trusted Bazel version from .bazelversion.
+      - USE_BAZEL_VERSION=8.8.2
     args:
       - --output_user_root=/workspace/bazel-root
       - --output_base=/workspace/bazel-base-linux-arm64
@@ -48,6 +57,9 @@ steps:
       - gs://k8s-staging-cloud-provider-gcp/gke-gcloud-auth-plugin/linux-arm64/${_GIT_TAG}
   # build auth-provider-gcp binary
   - name: 'gcr.io/cloud-builders/bazel'
+    env:
+      # Bazelisk-based builder: force the trusted Bazel version from .bazelversion.
+      - USE_BAZEL_VERSION=8.8.2
     args:
       - --output_user_root=/workspace/bazel-root
       - --output_base=/workspace/bazel-base-linux-arm64
@@ -61,6 +73,9 @@ steps:
       - gs://k8s-staging-cloud-provider-gcp/auth-provider-gcp/linux-arm64/${_GIT_TAG}
   # build gke-gcloud-auth-plugin binary
   - name: 'gcr.io/cloud-builders/bazel'
+    env:
+      # Bazelisk-based builder: force the trusted Bazel version from .bazelversion.
+      - USE_BAZEL_VERSION=8.8.2
     args:
       - --output_user_root=/workspace/bazel-root
       - --output_base=/workspace/bazel-base-windows-amd64
@@ -74,6 +89,9 @@ steps:
       - gs://k8s-staging-cloud-provider-gcp/gke-gcloud-auth-plugin/windows-amd64/${_GIT_TAG}
   # build auth-provider-gcp binary
   - name: 'gcr.io/cloud-builders/bazel'
+    env:
+      # Bazelisk-based builder: force the trusted Bazel version from .bazelversion.
+      - USE_BAZEL_VERSION=8.8.2
     args:
       - --output_user_root=/workspace/bazel-root
       - --output_base=/workspace/bazel-base-windows-amd64
